@@ -9,8 +9,8 @@ from random import shuffle
 import random
 import os
 from utils.params import parse_arguments, default_params
-import cv2  # Import OpenCV
-
+import cv2
+import matplotlib.image as mpimg
 
 
 path_to_data = '../'
@@ -329,36 +329,42 @@ def create_labels_color(**params):
 
     if verbose:
         print("Creating ground truth with all the classes in the same label...")
-    
+
     for file in files:
         img_name = file[:-4]
         image_all_labels = np.zeros((img_size[0], img_size[1], params['channels']), dtype=np.uint8)
+        print(image_all_labels.shape)
         for lab in range(len(labels)):
             try:
-                # Load the grayscale label image using OpenCV
-                image = cv2.imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif', cv2.IMREAD_UNCHANGED)
+                # Construct the full path to the image file
+                image_path = gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif'
+                
+                # Check if the file exists
+                if not os.path.exists(image_path):
+                    print(f"File not found: {image_path}")
+                    continue
+                
+                # Load the image using OpenCV in grayscale mode
+                image = mpimg.imread(image_path)
     
-                if image is not None and len(image.shape) == 2:
-                    # It's a 2D array (grayscale image)
-                    print("Loaded image is a grayscale image.")
-                    label = np.asarray(image).astype(np.uint8)
-                    # Use a specific intensity value to identify regions for each class in the grayscale label image
-                    image_all_labels[label == 255] = color_code_labels[lab + 1]
-                else:
-                    print("Failed to load or invalid image at path:", gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
-                    # Handle the case where the image could not be loaded or is not grayscale
+                # Check if the image loaded successfully
+                if image is None:
+                    print(f"Failed to load image: {image_path}")
+                    continue
     
-            except IOError:
-                label = np.zeros((img_size[0], img_size[1]), dtype=np.uint8)
-                # Handle the case where the image file does not exist
+    
+                label = np.asarray(image).astype(np.uint8)
+            except Exception as e:
+                print(f"Error processing image: {image_path}")
+                print(str(e))
+                label = np.zeros((img_size[0], img_size[1], params['channels']), dtype=np.uint8)
+            image_all_labels[(label[:, :, 0] == 255)] = color_code_labels[lab + 1]
     
         imsave(all_labels_path + img_name + '_all_labels.png', image_all_labels)
 
 
-    
     if verbose:
         print("Done!")
-
 
 
 def compute_mean_and_std(files_path, out_path):
