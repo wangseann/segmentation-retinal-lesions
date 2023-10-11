@@ -1,7 +1,7 @@
 import argparse
 
 default_params = {
-    'data_path': 'data/ground_truths/',
+    'data_path': 'data/',
     'images_path': 'data/images/',
     'gt_path': 'data/ground_truths/',
     'weights_path': 'model/',

@@ -9,6 +9,7 @@ from random import shuffle
 import random
 import os
 from utils.params import parse_arguments, default_params
+import cv2  # Import OpenCV
 
 
 
@@ -125,14 +126,11 @@ def create_datasets(**params):
         for lab in range(len(labels)):
             try:
                 image = imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
-                image_pad = np.pad(image, ((0, pad_height), (0, pad_width)), mode='constant') 
-                #changed from image_pad = np.pad(image, ((0, pad_height), (0, pad_width), (0,0)), mode='constant') to remove redundant pixel padding to color dimension 
+                image_pad = np.pad(image, ((0, pad_height), (0, pad_width), (0, 0)), mode='constant')
                 label = np.asarray(image_pad).astype(np.uint8)
             except IOError:
                 label = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
-           
-            image_all_labels[label == 255] = lab + 1 #changed from image_all_labels[(label[:, :, 0] == 255)] = lab+1
-        
+            image_all_labels[(label[:, :, 0] == 255)] = lab+1
         path_patches_train_all_labels = train_path + 'labels/'
         create_patches(image_all_labels, img_name + '_label', patch_size, patch_size // 2, channels, path_patches_train_all_labels, '.png')
 
@@ -160,12 +158,11 @@ def create_datasets(**params):
         for lab in range(len(labels)):
             try:
                 image = imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
-                image_pad = np.pad(image, ((0, pad_height), (0, pad_width)), mode='constant')
+                image_pad = np.pad(image, ((0, pad_height), (0, pad_width), (0, 0)), mode='constant')
                 label = np.asarray(image_pad).astype(np.uint8)
             except IOError:
                 label = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
-            image_all_labels[label == 255] = lab + 1
-
+            image_all_labels[(label[:, :, 0] == 255)] = lab+1
         path_patches_val_all_labels = val_path + 'labels/'
         create_patches(image_all_labels, img_name + '_label', patch_size, patch_size // 2, channels, path_patches_val_all_labels, '.png')
 
@@ -209,7 +206,7 @@ def create_datasets(**params):
                 label = np.asarray(image).astype(np.uint8)
             except IOError:
                 label = np.zeros((img_size[0], img_size[1], channels), dtype=np.uint8)
-            image_all_labels[(label == 255)] = lab + 1
+            image_all_labels[(label[:, :, 0] == 255)] = lab + 1
         path_test_all_full_labels = test_path + 'full_labels/'
         if not os.path.exists(path_test_all_full_labels):
             os.makedirs(path_test_all_full_labels)
@@ -332,25 +329,36 @@ def create_labels_color(**params):
 
     if verbose:
         print("Creating ground truth with all the classes in the same label...")
-
+    
     for file in files:
         img_name = file[:-4]
         image_all_labels = np.zeros((img_size[0], img_size[1], params['channels']), dtype=np.uint8)
         for lab in range(len(labels)):
             try:
-                image = imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
-                label = np.asarray(image).astype(np.uint8)
+                # Load the grayscale label image using OpenCV
+                image = cv2.imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif', cv2.IMREAD_UNCHANGED)
+    
+                if image is not None and len(image.shape) == 2:
+                    # It's a 2D array (grayscale image)
+                    print("Loaded image is a grayscale image.")
+                    label = np.asarray(image).astype(np.uint8)
+                    # Use a specific intensity value to identify regions for each class in the grayscale label image
+                    image_all_labels[label == 255] = color_code_labels[lab + 1]
+                else:
+                    print("Failed to load or invalid image at path:", gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
+                    # Handle the case where the image could not be loaded or is not grayscale
+    
             except IOError:
-                label = np.zeros((img_size[0], img_size[1]), dtype=np.uint8)  # Removed the unnecessary third dimension
-            # Ensure that lab+1 is within the range of color_code_labels
-            if 0 <= lab < len(color_code_labels):
-                image_all_labels[label == 255] = color_code_labels[lab]
-    imsave(all_labels_path + img_name + '_all_labels.png', image_all_labels)
+                label = np.zeros((img_size[0], img_size[1]), dtype=np.uint8)
+                # Handle the case where the image file does not exist
+    
+        imsave(all_labels_path + img_name + '_all_labels.png', image_all_labels)
 
 
-
+    
     if verbose:
         print("Done!")
+
 
 
 def compute_mean_and_std(files_path, out_path):
@@ -388,5 +396,6 @@ def compute_num_patches(file, patch_size):
 
 
 if __name__ == '__main__':
-    create_datasets(**vars(parse_arguments()))
     create_labels_color(**vars(parse_arguments()))
+    create_datasets(**vars(parse_arguments()))
+    
