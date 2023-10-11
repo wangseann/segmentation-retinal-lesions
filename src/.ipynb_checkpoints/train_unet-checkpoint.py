@@ -8,6 +8,8 @@ from unet_generator import UNetGeneratorClass
 from utils.losses import *
 from utils.params import parse_arguments_unet, default_params
 import sys
+import tensorflow as tf  # Import TensorFlow
+
 
 
 path_to_data = '../'
@@ -48,7 +50,7 @@ def train_unet_generator(**params):
     learning_rate = params['lr']
     loss = gen_dice_multilabel
 
-    unet.compile(optimizer=Adam(learning_rate=learning_rate), loss=loss, metrics=metrics)
+    unet.compile(optimizer=tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate), loss=loss, metrics=metrics)
 
     data_path = join(path_to_data, params['data_path'])
     batch_size = params['batch_size'] 
@@ -57,10 +59,10 @@ def train_unet_generator(**params):
         print("Getting generators...")
 
     train_scored_generator = UNetGeneratorClass(data_path=data_path, n_class=n_classes, batch_size=batch_size,
-                                                channels=channels, apply_augmentation=False, thres_score=None, train=True)
+                                                channels=channels, apply_augmentation=False, thres_score=0.3, train=True)
 
     train_generator = UNetGeneratorClass(data_path=data_path, n_class=n_classes, batch_size=batch_size,
-                                         channels=channels, apply_augmentation=True, thres_score=None, train=True)
+                                         channels=channels, apply_augmentation=True, thres_score=0.0, train=True)
 
     val_generator = UNetGeneratorClass(data_path=data_path, n_class=n_classes, batch_size=batch_size,
                                        channels=channels, apply_augmentation=False, thres_score=None, train=False)

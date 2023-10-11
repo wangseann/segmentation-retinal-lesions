@@ -345,7 +345,7 @@ def create_labels_color(**params):
             # Ensure that lab+1 is within the range of color_code_labels
             if 0 <= lab < len(color_code_labels):
                 image_all_labels[label == 255] = color_code_labels[lab]
-        imsave(all_labels_path + img_name + '_all_labels.png', image_all_labels)
+    imsave(all_labels_path + img_name + '_all_labels.png', image_all_labels)
 
 
 
