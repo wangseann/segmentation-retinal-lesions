@@ -9,7 +9,6 @@ from random import shuffle
 import random
 import os
 from utils.params import parse_arguments, default_params
-import cv2
 import matplotlib.image as mpimg
 
 
@@ -98,6 +97,7 @@ def create_datasets(**params):
     threshold_mask = params['thres_mask']
     labels = params['labels']
     gt_path = join(path_to_data, params['gt_path'])
+    color_code_labels = params['color_code_labels']
 
     img_aux = imread(files_path + files[0])
     img_size = img_aux.shape
@@ -111,52 +111,37 @@ def create_datasets(**params):
         pad_width = int(patch_size * num - img_size[1])
 
     count = 0
-    
-    for file in files_train:
-        img_name = file[:-4]
-        image = imread(files_path + file)
-        print('image shape: '+image.shape)
-    
-        mask_name = img_name + '_mask'
-        create_data_mask(image, mask_name, path_mask, threshold=threshold_mask)
-        mask = mpimg.imread(path_mask + mask_name + '.png') // 255
-        print('mask shape: '+mask.shape)
-        masked_img = mask * image
-        print('masked_img: '+masked_image.shape)
-    
-        # Calculate the required pad width and height
-        pad_height = (patch_size - (masked_img.shape[0] % patch_size)) % patch_size
-        pad_width = (patch_size - (masked_img.shape[1] % patch_size)) % patch_size
-    
-        # Pad the image with the calculated pad width and height
-        pad_width_tuple = ((0, pad_height), (0, pad_width), (0, 0))
-        image_pad = np.pad(masked_img, pad_width_tuple, mode='constant')
-    
-        path_patches_train = train_path + 'images/'
-        create_patches(image_pad, img_name, patch_size, patch_size // 2, channels, path_patches_train, '.png') #working fine as png patches are created correctly 
-    
-        image_all_labels = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
-        for lab in range(len(labels)):
-            try:
-                image = mpimg.imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
-                print("Image shape:", image.shape)
-                print("Pad height:", pad_height)
-                print("Pad width:", pad_width)
-                image_pad = np.pad(image, pad_width_tuple, mode='constant')
-                label = np.asarray(image_pad).astype(np.uint8)
-            except IOError:
-                label = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
-            image_all_labels[(label[:, :, 0] == 255)] = lab+1
-        path_patches_train_all_labels = train_path + 'labels/'
-        create_patches(image_all_labels, img_name + '_label', patch_size, patch_size // 2, channels, path_patches_train_all_labels, '.png')
-    
-        if verbose:
-            count += 1
-            print("Done: {0}/{1} of train dataset".format(count, len(files_train)))
+#     for file in files_train:
+#         img_name = file[:-4]
+#         image = imread(files_path + file)
 
+#         mask_name = img_name + '_mask'
+#         create_data_mask(image, mask_name, path_mask, threshold=threshold_mask)
+#         mask = imread(path_mask + mask_name + '.png') // 255
+#         masked_img = mask * image
+#         image_pad = np.pad(masked_img, ((0, pad_height), (0, pad_width), (0, 0)), mode='constant')
+#         path_patches_train = train_path + 'images/'
+#         create_patches(image_pad, img_name, patch_size, patch_size // 2, channels, path_patches_train, '.png')
 
-    if verbose:
-        print("Patches created for train dataset")
+#         image_all_labels = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
+#         for lab in range(len(labels)):
+#             try:
+#                 image = mpimg.imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
+#                 print(image.shape)
+#                 image_pad = np.pad(image, ((0, pad_height), (0, pad_width), (0, 0)), mode='constant')
+#                 label = np.asarray(image_pad).astype(np.uint8)
+#             except IOError:
+#                 label = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
+#             image_all_labels[(label[:, :, 0] == 255)] = color_code_labels[lab + 1]
+#         path_patches_train_all_labels = train_path + 'labels/'
+#         create_patches(image_all_labels, img_name + '_label', patch_size, patch_size // 2, channels, path_patches_train_all_labels, '.png')
+
+#         if verbose:
+#             count += 1
+#             print("Done: {0}/{1} of train dataset".format(count, len(files_train)))
+
+#     if verbose:
+#         print("Patches created for train dataset")
 
     count = 0
     for file in files_val:
@@ -174,12 +159,12 @@ def create_datasets(**params):
         image_all_labels = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
         for lab in range(len(labels)):
             try:
-                image = imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
+                image = mpimg.imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
                 image_pad = np.pad(image, ((0, pad_height), (0, pad_width), (0, 0)), mode='constant')
                 label = np.asarray(image_pad).astype(np.uint8)
             except IOError:
                 label = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
-            image_all_labels[(label[:, :, 0] == 255)] = lab+1
+            image_all_labels[(label[:, :, 0] == 255)] = color_code_labels[lab + 1]
         path_patches_val_all_labels = val_path + 'labels/'
         create_patches(image_all_labels, img_name + '_label', patch_size, patch_size // 2, channels, path_patches_val_all_labels, '.png')
 
@@ -219,11 +204,11 @@ def create_datasets(**params):
         image_all_labels = np.zeros((img_size[0], img_size[1], channels), dtype=np.uint8)
         for lab in range(len(labels)):
             try:
-                image = imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
+                image = mpimg.imread(gt_path + labels[lab] + img_name + '_' + labels[lab][:-1] + '.tif')
                 label = np.asarray(image).astype(np.uint8)
             except IOError:
                 label = np.zeros((img_size[0], img_size[1], channels), dtype=np.uint8)
-            image_all_labels[(label[:, :, 0] == 255)] = lab + 1
+            image_all_labels[(label[:, :, 0] == 255)] = color_code_labels[lab + 1]
         path_test_all_full_labels = test_path + 'full_labels/'
         if not os.path.exists(path_test_all_full_labels):
             os.makedirs(path_test_all_full_labels)
@@ -298,7 +283,6 @@ def create_patches(image, img_name, patch_size, step_size, channels, out_path, o
         for patch in group_patches:
             imsave(out_path + img_name + '_' + str(i).zfill(3) + out_format, patch[0])
             i += 1
-            #print(patch.shape)
 
 
 def compute_statistics_file(label_img):
@@ -403,6 +387,5 @@ def compute_num_patches(file, patch_size):
 
 
 if __name__ == '__main__':
-    #create_labels_color(**vars(parse_arguments()))
     create_datasets(**vars(parse_arguments()))
-    
+    create_labels_color(**vars(parse_arguments()))
