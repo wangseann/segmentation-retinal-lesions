@@ -115,11 +115,14 @@ def create_datasets(**params):
     for file in files_train:
         img_name = file[:-4]
         image = imread(files_path + file)
+        print('image shape: '+image.shape)
     
         mask_name = img_name + '_mask'
         create_data_mask(image, mask_name, path_mask, threshold=threshold_mask)
         mask = mpimg.imread(path_mask + mask_name + '.png') // 255
+        print('mask shape: '+mask.shape)
         masked_img = mask * image
+        print('masked_img: '+masked_image.shape)
     
         # Calculate the required pad width and height
         pad_height = (patch_size - (masked_img.shape[0] % patch_size)) % patch_size
@@ -130,7 +133,7 @@ def create_datasets(**params):
         image_pad = np.pad(masked_img, pad_width_tuple, mode='constant')
     
         path_patches_train = train_path + 'images/'
-        create_patches(image_pad, img_name, patch_size, patch_size // 2, channels, path_patches_train, '.png')
+        create_patches(image_pad, img_name, patch_size, patch_size // 2, channels, path_patches_train, '.png') #working fine as png patches are created correctly 
     
         image_all_labels = np.zeros((img_size[0] + pad_height, img_size[1] + pad_width, channels), dtype=np.uint8)
         for lab in range(len(labels)):
@@ -295,6 +298,7 @@ def create_patches(image, img_name, patch_size, step_size, channels, out_path, o
         for patch in group_patches:
             imsave(out_path + img_name + '_' + str(i).zfill(3) + out_format, patch[0])
             i += 1
+            #print(patch.shape)
 
 
 def compute_statistics_file(label_img):
