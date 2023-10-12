@@ -3,7 +3,8 @@ from tensorflow.keras.layers import Input, Activation
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.models import Model
-
+import tensorflow as tf  # Import TensorFlow
+import numpy as np
 
 
 def get_unet(patch_height, patch_width, channels, n_classes):

@@ -4,7 +4,7 @@ from os.path import isfile, join
 import numpy as np
 from skimage.io import imread
 from skimage.transform import rotate
-from keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical
 from random import shuffle, randint
 from data import image_shape, compute_statistics_file
 import sys

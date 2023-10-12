@@ -1,15 +1,15 @@
 import os
 from os.path import join
 from model_unet import *
-from keras.callbacks import ModelCheckpoint
-from keras.callbacks import TensorBoard
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.optimizers import Adam
 from unet_generator import UNetGeneratorClass
 from utils.losses import *
 from utils.params import parse_arguments_unet, default_params
 import sys
 import tensorflow as tf  # Import TensorFlow
-
+import numpy as np
 
 
 path_to_data = '../'
@@ -79,16 +79,26 @@ def train_unet_generator(**params):
 
     unet.fit_generator(train_scored_generator.generate(),
                        steps_per_epoch=(len(train_scored_generator.files) // train_scored_generator.batch_size + 1),
-                       epochs=15, verbose=verbose)
+                       epochs=4, verbose=verbose)
 
-    unet.fit_generator(train_generator.generate(),
-                       steps_per_epoch=(len(train_generator.files) // train_generator.batch_size + 1),
-                       epochs=50, verbose=verbose, callbacks=[tensorboard, model_checkpoint],
-                       validation_data=val_generator.generate(),
-                       validation_steps=(len(val_generator.files) // val_generator.batch_size + 1))
+    # unet.fit_generator(train_generator.generate(),
+    #                    steps_per_epoch=(len(train_generator.files) // train_generator.batch_size + 1),
+    #                    epochs=50, verbose=verbose, callbacks=[tensorboard, model_checkpoint],
+    #                    validation_data=val_generator.generate(),
+    #                    validation_steps=(len(val_generator.files) // val_generator.batch_size + 1))
+    unet.fit_generator(
+        train_generator.generate(),
+        steps_per_epoch=100,
+        epochs=2,  # Reduced from 50 for quick testing
+        verbose=verbose, 
+        callbacks=[tensorboard, model_checkpoint],
+        validation_data=val_generator.generate(),
+        validation_steps=(len(val_generator.files) // val_generator.batch_size + 1)
+    )
 
 
-    #unet.save_weights(join(weights_path, 'last_weights.h5'), overwrite=True)
+
+    unet.save_weights(join(weights_path, 'last_weights.h5'))
 
     if verbose:
         print("Training finished")
@@ -96,3 +106,5 @@ def train_unet_generator(**params):
 
 if __name__ == '__main__':
     train_unet_generator(**vars(parse_arguments_unet()))
+
+
