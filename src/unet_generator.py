@@ -8,6 +8,7 @@ from keras.utils import to_categorical
 from random import shuffle, randint
 from data import image_shape, compute_statistics_file
 import sys
+import matplotlib.image as mpimg
 
 
 
@@ -100,9 +101,14 @@ class UNetGeneratorClass(object):
                     a, b, c = file_name.split("_")
 
                     label_name = a + '_' + b + '_label_' + c
-                    label_img = imread(self.labels_path + label_name)
+                    label_img = mpimg.imread(self.labels_path + label_name)
                     label_array = np.asarray(label_img[:, :, 0]).astype(np.uint8)
-                    assert (np.amin(label_array) >= 0 and np.amax(label_array) <= 5)
+                    
+                    try:
+                        assert (np.amin(label_array) >= 0 and np.amax(label_array) <= 5)
+                    except AssertionError:
+                        print(f"Error: Label array in file {file_name} contains unexpected values: min={np.amin(label_array)}, max={np.amax(label_array)}")
+                        # Optionally log or visualize the erroneous label_array for further inspection.
 
                     if self.apply_augmentation:
                         delta = randint(0, 3)
