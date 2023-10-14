@@ -26,7 +26,7 @@ def main(**params):
     It applies adversarial training to the previously trained segmentation model
     :param data_path: path where images and labels are located
     :param weights_path: path where weights of the u-net are saved for each iteration
-    """
+    """pyt
 
     params = dict(
         default_params,

@@ -79,7 +79,7 @@ def train_unet_generator(**params):
 
     unet.fit_generator(train_scored_generator.generate(),
                        steps_per_epoch=(len(train_scored_generator.files) // train_scored_generator.batch_size + 1),
-                       epochs=4, verbose=verbose)
+                       epochs=15, verbose=verbose)
 
     # unet.fit_generator(train_generator.generate(),
     #                    steps_per_epoch=(len(train_generator.files) // train_generator.batch_size + 1),
@@ -89,7 +89,7 @@ def train_unet_generator(**params):
     unet.fit_generator(
         train_generator.generate(),
         steps_per_epoch=100,
-        epochs=2,  # Reduced from 50 for quick testing
+        epochs=5,  # Reduced from 50 for quick testing
         verbose=verbose, 
         callbacks=[tensorboard, model_checkpoint],
         validation_data=val_generator.generate(),
