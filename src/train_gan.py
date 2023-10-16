@@ -4,9 +4,12 @@ import os
 from os.path import join
 from model_gan import get_discriminator, get_gan, compile_unet
 from utils.params import parse_arguments_gan, default_params
-
+from custom_layers import CustomTrainingLayer
+from tensorflow.python.framework.ops import disable_eager_execution
+disable_eager_execution()
 
 path_to_data = '../'
+
 
 
 def make_trainable(net, val):
@@ -26,7 +29,7 @@ def main(**params):
     It applies adversarial training to the previously trained segmentation model
     :param data_path: path where images and labels are located
     :param weights_path: path where weights of the u-net are saved for each iteration
-    """pyt
+    """
 
     params = dict(
         default_params,
@@ -56,6 +59,9 @@ def main(**params):
 
     # adversarial
     gan = get_gan(g, d, patch_size, patch_size, channels, n_classes)
+    
+    # custom layer 
+    custom_training_layer = CustomTrainingLayer(gan)
 
     n_rounds = 2 # number of rounds to apply adversarial training
     batch_size = params['batch_size']
@@ -107,7 +113,7 @@ def main(**params):
         for i in range(steps_per_epoch_g):
             image_batch, labels_batch = next(train_fetcher)
             img_gan_batch, lab_gan_batch = imgs2gan(image_batch, labels_batch)
-            loss, acc, dice = gan.train_on_batch(img_gan_batch, lab_gan_batch)
+            loss, acc, dice = custom_training_layer(img_gan_batch, lab_gan_batch)
         gan_loss_array[n_round] = loss
         print("UNET Round: {0} -> Loss {1}".format((n_round + 1), loss))
 
