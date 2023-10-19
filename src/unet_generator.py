@@ -50,7 +50,6 @@ class UNetGeneratorClass(object):
 
         self.apply_augmentation = apply_augmentation
 
-# You will need to define the `image_shape` and `compute_statistics_file` functions or import them from somewhere.
 
 
 

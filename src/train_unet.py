@@ -81,9 +81,9 @@ def train_unet_generator(**params):
     model_checkpoint = ModelCheckpoint(best_weights, verbose=1, monitor='val_loss', save_best_only=True)
     tensorboard = TensorBoard(log_dir=out_path, histogram_freq=0, write_graph=True, write_images=False)
 
-    # unet.fit_generator(train_scored_generator.generate(),
-    #                    steps_per_epoch=(len(train_scored_generator.files) // train_scored_generator.batch_size + 1),
-    #                    epochs=15, verbose=verbose)
+    unet.fit_generator(train_scored_generator.generate(),
+                       steps_per_epoch=(len(train_scored_generator.files) // train_scored_generator.batch_size + 1),
+                       epochs=2, verbose=verbose)
 
     # unet.fit_generator(
     #     train_generator.generate(),
@@ -95,19 +95,20 @@ def train_unet_generator(**params):
     #     validation_steps=(len(val_generator.files) // val_generator.batch_size + 1)
     # )
     
-    unet.fit(train_scored_generator.generate(),
-                       steps_per_epoch=(len(train_scored_generator.files) // train_scored_generator.batch_size + 1),
-                       epochs=5, verbose=verbose)
+    # unet.fit(train_scored_generator.generate(),
+    #                    steps_per_epoch=(len(train_scored_generator.files) // train_scored_generator.batch_size + 1),
+    #                    epochs=5, verbose=verbose)
     
     unet.fit(
         train_generator.generate(),
         steps_per_epoch=100,
-        epochs=5,  # Reduced from 50 for quick testing
+        epochs=1,  # Reduced from 50 for quick testing
         verbose=verbose, 
         callbacks=[tensorboard, model_checkpoint],
         validation_data=val_generator.generate(),
         validation_steps=(len(val_generator.files) // val_generator.batch_size + 1)
     )
+    
 
 
 
