@@ -25,7 +25,7 @@ def compile_unet(patch_height, patch_width, channels, n_classes, weights):
     """
     unet = get_unet(patch_height, patch_width, channels, n_classes)
 
-    unet.compile(optimizer=Adam(lr=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
+    unet.compile(optimizer=Adam(learning_rate=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
     # unet.compile(optimizer=Adam(learning_rate=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
 
     # load the weights of the already trained U-Net model
@@ -144,6 +144,6 @@ def get_gan(g, d, patch_height, patch_width, channels, n_classes):
 
         return alpha_recip * L_adv + L_seg
 
-    gan.compile(optimizer=Adam(lr=1e-4), loss=gan_loss, metrics=['accuracy', dice_coef])
+    gan.compile(optimizer=Adam(learning_rate=1e-4), loss=gan_loss, metrics=['accuracy', dice_coef])
 
     return gan
