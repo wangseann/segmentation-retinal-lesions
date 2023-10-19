@@ -74,14 +74,14 @@ def main(**params):
     train_fetcher = TrainBatchFetcher(images_train, labels_train, batch_size=batch_size)
     images_val, labels_val, n_files_val = get_data(val_path, channels, n_classes, verbose)
     val_fetcher = TrainBatchFetcher(images_val, labels_val, batch_size=batch_size)
-    #steps_per_epoch_d = (n_files_train//batch_size +1)
-    #steps_per_epoch_g = (n_files_train//batch_size +1)
-    #steps_val_d = (n_files_val//batch_size +1)
-    #steps_val_g = (n_files_val//batch_size +1)
-    steps_per_epoch_d = 5
-    steps_per_epoch_g = 5
-    steps_val_d = 5
-    steps_val_g = 5
+    steps_per_epoch_d = (n_files_train//batch_size +1)
+    steps_per_epoch_g = (n_files_train//batch_size +1)
+    steps_val_d = (n_files_val//batch_size +1)
+    steps_val_g = (n_files_val//batch_size +1)
+    # steps_per_epoch_d = 5
+    # steps_per_epoch_g = 5
+    # steps_val_d = 5
+    # steps_val_g = 5
 
     # to show the progression of the losses
     val_gan_loss_array = np.zeros(n_rounds)

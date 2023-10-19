@@ -9,10 +9,6 @@ from random import shuffle, randint
 from data import image_shape, compute_statistics_file
 import sys
 import matplotlib.image as mpimg
-
-
-
-
 from os.path import join, isfile
 from os import listdir
 from skimage.io import imread

@@ -6,7 +6,7 @@ from tensorflow.keras.layers import LeakyReLU
 from tensorflow.keras.layers import Concatenate
 from tensorflow.keras.layers import BatchNormalization
 from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers.legacy import Adam  
+from tensorflow.keras.optimizers import Adam  
 from model_unet import get_unet
 from utils.losses import gen_dice_multilabel, dice_coef
 import tensorflow as tf  # Import TensorFlow
@@ -25,8 +25,8 @@ def compile_unet(patch_height, patch_width, channels, n_classes, weights):
     """
     unet = get_unet(patch_height, patch_width, channels, n_classes)
 
-    #unet.compile(optimizer=Adam(lr=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
-    unet.compile(optimizer=Adam(learning_rate=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
+    unet.compile(optimizer=Adam(lr=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
+    # unet.compile(optimizer=Adam(learning_rate=1e-4), loss=gen_dice_multilabel, metrics=['accuracy', dice_coef])
 
     # load the weights of the already trained U-Net model
     unet.load_weights(weights)
@@ -50,42 +50,42 @@ def get_discriminator(patch_height, patch_width, channels, n_classes):
 
     inputs = Input((patch_height, patch_width, channels + n_classes))
     conv1 = Conv2D(n_filters, kernel_size=(k, k), strides=(s, s), padding='same')(inputs)
-    conv1 = BatchNormalization(scale=False, axis=3)(conv1)
+    conv1 = BatchNormalization(scale=True, axis=3)(conv1)
     conv1 = LeakyReLU(alpha=0.1)(conv1)
     conv1 = Conv2D(n_filters, kernel_size=(k, k), padding='same')(conv1)
-    conv1 = BatchNormalization(scale=False, axis=3)(conv1)
+    conv1 = BatchNormalization(scale=True, axis=3)(conv1)
     conv1 = LeakyReLU(alpha=0.1)(conv1)
     pool1 = MaxPooling2D(pool_size=(s, s))(conv1)
 
     conv2 = Conv2D(2 * n_filters, kernel_size=(k, k), strides=(s, s), padding='same')(pool1)
-    conv2 = BatchNormalization(scale=False, axis=3)(conv2)
+    conv2 = BatchNormalization(scale=True, axis=3)(conv2)
     conv2 = LeakyReLU(alpha=0.1)(conv2)
     conv2 = Conv2D(2 * n_filters, kernel_size=(k, k), padding='same')(conv2)
-    conv2 = BatchNormalization(scale=False, axis=3)(conv2)
+    conv2 = BatchNormalization(scale=True, axis=3)(conv2)
     conv2 = LeakyReLU(alpha=0.1)(conv2)
     pool2 = MaxPooling2D(pool_size=(s, s))(conv2)
 
     conv3 = Conv2D(4 * n_filters, kernel_size=(k, k), padding='same')(pool2)
-    conv3 = BatchNormalization(scale=False, axis=3)(conv3)
+    conv3 = BatchNormalization(scale=True, axis=3)(conv3)
     conv3 = LeakyReLU(alpha=0.1)(conv3)
     conv3 = Conv2D(4 * n_filters, kernel_size=(k, k), padding='same')(conv3)
-    conv3 = BatchNormalization(scale=False, axis=3)(conv3)
+    conv3 = BatchNormalization(scale=True, axis=3)(conv3)
     conv3 = LeakyReLU(alpha=0.1)(conv3)
     pool3 = MaxPooling2D(pool_size=(s, s))(conv3)
 
     conv4 = Conv2D(8 * n_filters, kernel_size=(k, k), padding='same')(pool3)
-    conv4 = BatchNormalization(scale=False, axis=3)(conv4)
+    conv4 = BatchNormalization(scale=True, axis=3)(conv4)
     conv4 = LeakyReLU(alpha=0.1)(conv4)
     conv4 = Conv2D(8 * n_filters, kernel_size=(k, k), padding='same')(conv4)
-    conv4 = BatchNormalization(scale=False, axis=3)(conv4)
+    conv4 = BatchNormalization(scale=True, axis=3)(conv4)
     conv4 = LeakyReLU(alpha=0.1)(conv4)
     pool4 = MaxPooling2D(pool_size=(s, s))(conv4)
 
     conv5 = Conv2D(16 * n_filters, kernel_size=(k, k), padding='same')(pool4)
-    conv5 = BatchNormalization(scale=False, axis=3)(conv5)
+    conv5 = BatchNormalization(scale=True, axis=3)(conv5)
     conv5 = LeakyReLU(alpha=0.1)(conv5)
     conv5 = Conv2D(16 * n_filters, kernel_size=(k, k), padding='same')(conv5)
-    conv5 = BatchNormalization(scale=False, axis=3)(conv5)
+    conv5 = BatchNormalization(scale=True, axis=3)(conv5)
     conv5 = LeakyReLU(alpha=0.1)(conv5)
 
     gap = GlobalAveragePooling2D()(conv5)
@@ -144,6 +144,6 @@ def get_gan(g, d, patch_height, patch_width, channels, n_classes):
 
         return alpha_recip * L_adv + L_seg
 
-    gan.compile(optimizer=Adam(learning_rate=1e-4), loss=gan_loss, metrics=['accuracy', dice_coef])
+    gan.compile(optimizer=Adam(lr=1e-4), loss=gan_loss, metrics=['accuracy', dice_coef])
 
     return gan
